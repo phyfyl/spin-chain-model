@@ -1,4 +1,4 @@
-#Spin Chain Model
+# Spin Chain Model
 ## Description
 ### This is a code obtaining the gound state of a spin-chain model under a series of external magnetic fields.
 ### The gound state is obtained by simulated annealing algorithm.
