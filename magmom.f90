@@ -1,7 +1,7 @@
 MODULE VariablesModule
     IMPLICIT NONE
     INTEGER :: Nls, NBs,iterations
-    REAL :: Bj, Bk, Jt,Kt,Bmin, Bmax,T_init, T_min, alpha
+    REAL :: Bj, Bk, Jt,Kt,Jb,Kb,Bmin, Bmax,T_init, T_min, alpha
 END MODULE VariablesModule
 
 SUBROUTINE ReadVariables
@@ -47,6 +47,16 @@ SUBROUTINE ReadVariables
         pos = index(line, 'Kt=')
         if (pos  > 0) then
             read(line(pos+3:), *, iostat=iunit) Kt
+        end if
+
+        pos = index(line, 'Jb=')
+        if (pos  > 0) then
+            read(line(pos+3:), *, iostat=iunit) Jb
+        end if
+
+        pos = index(line, 'Kb=')
+        if (pos  > 0) then
+            read(line(pos+3:), *, iostat=iunit) Kb
         end if
 
         pos = index(line, 'Bmin=')
@@ -148,11 +158,12 @@ function Em(Bz, t) result(u)
   afm_u=0d0
   zeeman_u=0d0
   pma_u=0d0
-  do i=1,Nls-2
+  do i=2,Nls-2
      afm_u=afm_u+Bj/2*cos(t(i)-t(i+1)) 
   end do
 
-  afm_u=afm_u+Bj/2*Jt*cos(t(Nls-1)-t(Nls)) 
+  afm_u=afm_u+Bj/2*Jt*cos(t(Nls-1)-t(Nls))
+  afm_u=afm_u+Bj/2*Jb*cos(t(2)-t(1))
 
   do i=1,Nls-1
      zeeman_u=zeeman_u-Bz*cos(t(i))
@@ -161,6 +172,7 @@ function Em(Bz, t) result(u)
 
   zeeman_u=zeeman_u-Bz*cos(t(Nls))
   pma_u=pma_u-Bk/2*Kt*cos(t(Nls))**2
+  pma_u=pma_u-Bk/2*Kb*cos(t(1))**2
 
   u=afm_u+pma_u+zeeman_u
 
@@ -281,6 +293,8 @@ program annealing_mpi
     PRINT *, 'Bk   = ', Bk
     PRINT *, 'Jt   = ', Jt
     PRINT *, 'Kt   = ', Kt
+    PRINT *, 'Jb   = ', Jb
+    PRINT *, 'Kb   = ', Kb
     PRINT *, 'Bmin = ', Bmin
     PRINT *, 'Bmax = ', Bmax
     PRINT *, 'NBs  = ', NBs
