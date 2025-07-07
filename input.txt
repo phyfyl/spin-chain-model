@@ -1,0 +1,12 @@
+Nls=7
+Bj=5.14
+Bk=1.542
+Jt=0.05
+Kt=5
+Bmin=0.5
+Bmax=9
+NBs=300
+T_init=10
+T_min=1E-8
+alpha=0.999
+iterations=20000
