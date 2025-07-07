@@ -34,13 +34,15 @@ exp=np.exp
 pi=np.pi
 muB=5.78838*10**(-5)
 nl=7
-m=0.05
-delta_ii=0.1
-delta_ij=0.05
-mz=5*muB
-v=1
 Bj=5.14
 Bk=0.3*Bj
+Jt=0.05
+Kt=5
+Jb=0.05
+Kb=5
+Bmin=0.5
+Bmax=9
+Nb=300
 T_init = 10 # 初始温度
 T_min = 1e-8   # 最小温度
 alpha = 0.999   # 温度衰减因子
@@ -48,19 +50,21 @@ iterations = 10000  # 每个温度下的迭代次数
 
 def Em(Bz,t):
     
-    t1=t[0]
-    t2=t[1]
-    t3=t[2]
-    t4=t[3]
-    t5=t[4]
-    t6=t[5]
-    t7=t[6]
-    Jt=0.05
-    Kt=5
-    u=(Bj/2*(cos(t1-t2)+cos(t2-t3)+cos(t3-t4)+cos(t4-t5)
-         +cos(t5-t6)+Jt*cos(t6-t7))-Bz*(cos(t1)+cos(t2)+cos(t3)+cos(t4)+cos(t5)
-         +cos(t6)+cos(t7))-Bk/2*(cos(t1)**2+cos(t2)**2+cos(t3)**2+cos(t4)**2+cos(t5)**2
-         +cos(t6)**2+Kt*cos(t7)**2))
+    zeeman_u=0
+    afm_u=0
+    pma_u=0
+    
+    for i in np.arange(2,nl-3):
+        zeeman_u=zeeman_u-Bz*cos(t[i])
+        afm_u=afm_u+Bj/2*cos(t[i+1]-t[i])
+        pma_u=pma_u-Bk/2*cos(t[i])**2
+
+    zeeman_u=zeeman_u-Bz*cos(t[0])-Bz*cos(t[nl-1])
+    afm_u=afm_u+Bj/2*(Jb*cos(t[1]-t[0])+Jt*cos(t[nl-1]-t[nl-2]))
+    pma_u=pma_u-Bk/2*(Kb*cos(t[0])**2+Kt*cos(t[nl-1])**2)
+            
+    u=zeeman_u+afm_u+pma_u
+    
     return u
 
 # 随机生成初始解 [-pi, pi] 的范围
@@ -131,12 +135,11 @@ def simulated_annealing(Bz):
     print(best_energy)
     return best_solution*180/pi,best_energy
 
-Nb=384
-thetas=np.zeros([7,Nb])
+thetas=np.zeros([nl,Nb])
 Es=np.zeros(Nb)
 Bs=np.zeros(Nb)
-for i in range(rank,Nb,size):
-    B=0.5+i*0.025
+for i in np.arange(rank,Nb,size):
+    B=Bmin+i*(Bmax-Bmin)/(Nb-1)
     Bs[i]=B
     theta,E=simulated_annealing(B)
     thetas[:,i]=theta[:]
